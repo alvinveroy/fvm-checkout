@@ -5,7 +5,7 @@ const git = require('simple-git');
 const path = require('path');
 const rimraf = require('rimraf');
 
-const resources = JSON.parse(fs.readFileSync('script.json'));
+const resources = JSON.parse(fs.readFileSync('scripts.json'));
 
 const sleep = (ms) => {
   return new Promise((resolve) => {
