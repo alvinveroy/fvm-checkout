@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+const fs = require('fs');
+const axios = require('axios');
+const git = require('simple-git');
+const path = require('path');
+const rimraf = require('rimraf');
+
+const resources = JSON.parse(fs.readFileSync('script.json'));
+
+const sleep = (ms) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
+
+const get_github = async(repo, folder) => {
+    //check if resource folder exist
+    var resource_path = path.resolve(process.cwd(), 'resources');    
+    if (fs.existsSync(resource_path)) {
+      resource_path = path.resolve(resource_path, folder);
+      if (!fs.existsSync(resource_path)) fs.mkdirSync(resource_path);
+    } else {
+      console.log('invalid directory');
+      process.exit(1);
+    }
+      try {
+        //1. Check api github
+        const data = await axios.get('https://api.github.com/repos/' + repo);
+
+        //2. Get name
+        //3. get git_url
+        //6. Record updated_at
+        const info = {
+          name: data.data.name,
+          url: data.data.git_url,
+          date: data.data.updated_at,
+        };
+
+        // Check if folder exist
+        resource_path = path.resolve(resource_path, info.name);
+        if (fs.existsSync(resource_path)) {
+          //4. Check if directory exist then remove directory and clone
+          rimraf.sync();
+          await git()
+            .silent(true)
+            .clone(info.url, resource_path)
+            .then(() => console.log('finished'));          
+        } else {
+          //5. else just clone
+          await git()
+            .silent(true)
+            .clone(info.url, resource_path)
+            .then(() => console.log('finished'));
+        }
+      } catch (error) {
+        console.error(error);
+      }
+}
+
+(async _ => {
+    for (let [key, value] of Object.entries(resources.folder)) {
+
+        let repo = key;
+        let folder = '[' + value + ']';
+        console.log('Installing: ' + repo + ' at folder ' + folder);
+        await sleep(10000);
+        await get_github(repo, folder);
+    }
+})();
+
+//get_github('ESX-Org/async', '[esx]');
+//console.log(resources.folder);
