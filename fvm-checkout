@@ -40,7 +40,7 @@ const get_github = async(repo, folder) => {
         resource_path = path.resolve(resource_path, info.name);
         if (fs.existsSync(resource_path)) {
           //4. Check if directory exist then remove directory and clone
-          rimraf.sync();
+          rimraf.sync(resource_path);
           await git()
             .silent(true)
             .clone(info.url, resource_path)
